@@ -1,5 +1,6 @@
 import React from 'react';
 import prisma from '@/lib/prisma';
+import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,8 +29,13 @@ export default async function AdminDashboard() {
     <div className="container animate-fade-in">
       <div className="flex justify-between items-center mb-6">
         <h1>Admin Dashboard</h1>
-        <div style={{ padding: '0.5rem 1rem', background: 'rgba(255,255,255,0.1)', borderRadius: '20px' }}>
-          Role: <span style={{ color: 'var(--success)' }}>Super Admin</span>
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          <Link href="/admin/attendees" className="btn btn-primary" style={{ padding: '0.5rem 1rem', textDecoration: 'none' }}>
+            View All Attendees
+          </Link>
+          <div style={{ padding: '0.5rem 1rem', background: 'rgba(255,255,255,0.1)', borderRadius: '20px' }}>
+            Role: <span style={{ color: 'var(--success)' }}>Super Admin</span>
+          </div>
         </div>
       </div>
 
