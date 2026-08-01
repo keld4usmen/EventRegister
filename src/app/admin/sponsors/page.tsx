@@ -2,6 +2,8 @@ import React from 'react';
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 
+export const dynamic = 'force-dynamic';
+
 export default async function SponsorsAdminPage() {
   const sponsors = await prisma.sponsor.findMany({
     orderBy: { createdAt: 'desc' }
