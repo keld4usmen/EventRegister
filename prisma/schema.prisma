@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -12,28 +7,78 @@ datasource db {
   provider = "sqlite"
 }
 
-model Group {
-  id              String       @id @default(uuid())
-  groupName       String
-  masterQrCode    String?
-  totalGuestCount Int          @default(0)
-  registrants     Registrant[]
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+model Attendee {
+  id                 String       @id @default(uuid())
+  registrationId     String       @unique // e.g. INSP26-0001
+  fullName           String
+  preferredName      String?
+  gender             String
+  ageGroup           String
+  phone              String
+  email              String       @unique
+  location           String       // City/State/Country
+  attendingAs        String
+  company            String?
+  jobTitle           String?
+  industry           String?
+  experienceYears    String?
+  source             String?      // Marketing attribution
+  expectations       String?
+  communicationConsent Boolean      @default(false)
+  mediaRelease       Boolean      @default(false)
+  conductAgreement   Boolean      @default(false)
+  qrCodeString       String       @unique
+  status             String       @default("PENDING") // PENDING, CHECKED_IN
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  attendance         Attendance?
+  feedback           Feedback[]
 }
 
-model Registrant {
-  id                 String   @id @default(uuid())
-  name               String
-  email              String   @unique
-  phone              String?
-  role               String   @default("Guest") // "Primary" or "Guest"
-  businessStage      String?
-  spiritualQuestions String?
-  prayerRequested    Boolean  @default(false)
-  checkedIn          Boolean  @default(false)
-  groupId            String
-  group              Group    @relation(fields: [groupId], references: [id])
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+model Attendance {
+  id          String   @id @default(uuid())
+  attendeeId  String   @unique
+  attendee    Attendee @relation(fields: [attendeeId], references: [id], onDelete: Cascade)
+  checkinTime DateTime @default(now())
+  checkedBy   String?  // User.id who checked them in
+}
+
+model Speaker {
+  id          String   @id @default(uuid())
+  name        String
+  profile     String?
+  topic       String
+  bio         String?
+  contact     String?
+  sessionTime String?
+  createdAt   DateTime @default(now())
+}
+
+model Sponsor {
+  id            String   @id @default(uuid())
+  company       String
+  package       String
+  status        String   @default("PENDING")
+  logoUrl       String?
+  contactPerson String?
+  createdAt     DateTime @default(now())
+}
+
+model Feedback {
+  id               String   @id @default(uuid())
+  attendeeId       String
+  attendee         Attendee @relation(fields: [attendeeId], references: [id], onDelete: Cascade)
+  experienceRating Int
+  speakerRating    Int
+  comments         String?
+  createdAt        DateTime @default(now())
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      String   @default("VOLUNTEER") // SUPER_ADMIN, REGISTRATION, CHECK_IN, FINANCE
+  createdAt DateTime @default(now())
 }

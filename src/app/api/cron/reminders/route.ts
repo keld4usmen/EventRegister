@@ -1,60 +1,25 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { sendEmail } from "@/lib/email";
 
 export async function POST(req: Request) {
   try {
-    // In a real app, you'd want to secure this endpoint (e.g. check a cron secret)
-    // const authHeader = req.headers.get('authorization');
-    // if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    //   return new Response('Unauthorized', { status: 401 });
-    // }
-
-    const registrants = await prisma.registrant.findMany();
+    const attendees = await prisma.attendee.findMany({
+      where: { status: 'PENDING' } // Only send to pending check-in
+    });
 
     const results = [];
 
-    for (const reg of registrants) {
-      // Base message
-      let htmlMessage = `
-        <h2>Hi ${reg.name},</h2>
-        <p>We are so excited to see you tomorrow at the Event App Summit!</p>
-        <p>Please make sure you have your check-in QR code ready (if you are the Primary registrant, you received this in your confirmation email. Guests, your primary will scan you in!).</p>
-        <hr />
-        <h3>Your Custom Resource Pack</h3>
-        <ul>
-      `;
-
-      // Resource Pack Logic
-      if (reg.prayerRequested) {
-        htmlMessage += `<li><strong>Spiritual Resource Link:</strong> <a href="https://example.com/spiritual-resource">Download Here</a></li>`;
-      }
-
-      if (reg.businessStage === "Idea") {
-        htmlMessage += `<li><strong>Startup Guide Link:</strong> <a href="https://example.com/startup-guide">Download Here</a></li>`;
-      }
-
-      if (!reg.prayerRequested && reg.businessStage !== "Idea") {
-        htmlMessage += `<li><em>No specific resources matched your profile right now, but we have plenty waiting for you at the event!</em></li>`;
-      }
-
-      htmlMessage += `
-        </ul>
-        <br/>
-        <p>See you tomorrow!</p>
-      `;
-
-      // Send the email
-      const emailResult = await sendEmail({
-        to: reg.email,
-        subject: "See you tomorrow at the Summit!",
-        html: htmlMessage,
-      });
-
-      results.push({ email: reg.email, success: emailResult.success });
+    for (const attendee of attendees) {
+      // In a real application, you would determine which reminder to send
+      // (7 days, 3 days, 24 hours) based on the current date relative to the event date.
+      
+      // Simulate sending email
+      // await transporter.sendMail({ ... })
+      
+      results.push({ email: attendee.email, status: 'simulated_success' });
     }
 
-    return NextResponse.json({ success: true, processed: registrants.length, results }, { status: 200 });
+    return NextResponse.json({ success: true, processed: attendees.length, results }, { status: 200 });
   } catch (error: any) {
     console.error("Cron reminders error:", error);
     return NextResponse.json(

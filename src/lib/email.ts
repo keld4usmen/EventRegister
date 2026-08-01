@@ -1,67 +1,51 @@
-import nodemailer from "nodemailer";
+import nodemailer from 'nodemailer';
 
-/**
- * Gets a nodemailer transporter instance.
- * If real SMTP details are provided in environment variables, it uses those.
- * Otherwise, it automatically creates a test Ethereal email account.
- */
-export async function getTransporter() {
-  if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
-    return nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT) || 587,
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
-    });
-  }
+// Configure the email transport using Nodemailer
+// In production, configure environment variables (e.g. SMTP_HOST, SMTP_USER, etc.)
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST || 'smtp.ethereal.email',
+  port: Number(process.env.SMTP_PORT) || 587,
+  auth: {
+    user: process.env.SMTP_USER || 'ethereal.user@ethereal.email',
+    pass: process.env.SMTP_PASS || 'ethereal_password',
+  },
+});
 
-  // Fallback to Ethereal Email for local testing
-  const testAccount = await nodemailer.createTestAccount();
-  return nodemailer.createTransport({
-    host: "smtp.ethereal.email",
-    port: 587,
-    secure: false,
-    auth: {
-      user: testAccount.user,
-      pass: testAccount.pass,
-    },
-  });
-}
-
-/**
- * Helper function to send an email.
- */
-export async function sendEmail({
-  to,
-  subject,
-  html,
-}: {
-  to: string;
-  subject: string;
-  html: string;
-}) {
+export const sendConfirmationEmail = async (to: string, name: string, registrationId: string, qrLink: string) => {
   try {
-    const transporter = await getTransporter();
-
     const info = await transporter.sendMail({
-      from: '"Event App" <noreply@eventapp.com>',
+      from: '"Inspire Summit 2026" <noreply@inspiresummit.com>',
       to,
-      subject,
-      html,
+      subject: 'INSPIRE SUMMIT 2026 Registration Confirmed',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+          <h2 style="color: #8a2be2;">Welcome to Inspire Summit 2026!</h2>
+          <p>Hi ${name},</p>
+          <p>Your registration is confirmed. We are thrilled to have you join us.</p>
+          
+          <div style="background: #f4f4f4; padding: 15px; border-radius: 8px; margin: 20px 0;">
+            <p style="margin: 0;"><strong>Registration ID:</strong> ${registrationId}</p>
+          </div>
+
+          <p>Please click the link below to view and download your digital QR Ticket. You will need to present this at check-in.</p>
+          <a href="${qrLink}" style="display: inline-block; padding: 10px 20px; background: #8a2be2; color: white; text-decoration: none; border-radius: 5px;">View My Ticket</a>
+
+          <hr style="border: none; border-top: 1px solid #eaeaea; margin: 30px 0;" />
+          
+          <h3>Event Details</h3>
+          <p><strong>Date:</strong> August 29, 2026</p>
+          <p><strong>Time:</strong> 9:00 AM - 5:00 PM</p>
+          <p><strong>Venue:</strong> Main Auditorium, Lagos, Nigeria</p>
+
+          <p style="font-size: 0.9em; color: #666;">If you have any questions, please contact our support team.</p>
+        </div>
+      `,
     });
 
-    console.log("Message sent: %s", info.messageId);
-
-    // If using Ethereal, log the preview URL for the user to easily check the email
-    if (!process.env.SMTP_HOST) {
-      console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
-    }
-
+    console.log('Confirmation email sent:', info.messageId);
     return { success: true, messageId: info.messageId };
   } catch (error) {
-    console.error("Failed to send email:", error);
+    console.error('Error sending confirmation email:', error);
     return { success: false, error };
   }
-}
+};

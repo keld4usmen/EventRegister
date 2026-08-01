@@ -1,229 +1,123 @@
-"use client";
-
-import { useState } from "react";
-import { QRCodeSVG } from "qrcode.react";
+import Link from 'next/link';
+import Image from 'next/image';
 
 export default function Home() {
-  const [formData, setFormData] = useState({
-    primaryName: "",
-    primaryEmail: "",
-    primaryPhone: "",
-    businessStage: "",
-    prayerRequested: false,
-  });
-  const [guests, setGuests] = useState<{ name: string; email: string }[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [successData, setSuccessData] = useState<any>(null);
-  const [qrUrl, setQrUrl] = useState("");
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target;
-    setFormData({ 
-      ...formData, 
-      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value 
-    });
-  };
-
-  const addGuest = () => {
-    setGuests([...guests, { name: "", email: "" }]);
-  };
-
-  const updateGuest = (index: number, field: string, value: string) => {
-    const updatedGuests = [...guests];
-    updatedGuests[index] = { ...updatedGuests[index], [field]: value };
-    setGuests(updatedGuests);
-  };
-
-  const removeGuest = (index: number) => {
-    const updatedGuests = guests.filter((_, i) => i !== index);
-    setGuests(updatedGuests);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    
-    try {
-      const response = await fetch("/api/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ ...formData, guests }),
-      });
-
-      const data = await response.json();
-      if (data.success) {
-        setSuccessData(data.group);
-        // Construct full URL for QR code
-        const origin = window.location.origin;
-        setQrUrl(`${origin}${data.group.masterQrCode}`);
-      } else {
-        alert(data.error);
-      }
-    } catch (error) {
-      alert("An error occurred during registration.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  if (successData) {
-    return (
-      <main className="container flex flex-col items-center justify-center min-h-screen text-center">
-        <div className="glass-card animate-fade-in flex flex-col items-center">
-          <h1 className="mb-4">Registration Successful!</h1>
-          <p className="mb-6 text-lg">Thank you, {successData.groupName}. Your group is registered.</p>
-          
-          <div className="mb-6 p-4 bg-white rounded-xl">
-            <QRCodeSVG value={qrUrl} size={200} />
-          </div>
-          
-          <p className="mb-4 text-sm text-[rgba(255,255,255,0.7)]">
-            Please save this QR code. You will need it for check-in at the event.
-          </p>
-          
-          <button 
-            onClick={() => window.location.reload()}
-            className="btn btn-secondary mt-4"
-          >
-            Register Another Group
-          </button>
-        </div>
-      </main>
-    );
-  }
+  const speakers = [
+    { 
+      name: "DR. EEZEE TEE", 
+      title: "CEO, EEZEE CONCEPTZ GLOBAL", 
+      image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=600&q=80" 
+    },
+    { 
+      name: "DR. BAYO ADEDEJI", 
+      title: "CEO OF WAKANOW", 
+      image: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=600&q=80" 
+    },
+    { 
+      name: "MR. GBOLAHAN FANIRAN", 
+      title: "CEO, MINIEMONEY", 
+      image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=600&q=80" 
+    },
+    { 
+      name: "MR. TOBI FLETCHER", 
+      title: "CEO OF OFADABOY", 
+      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=600&q=80" 
+    },
+  ];
 
   return (
-    <main className="container flex items-center justify-center min-h-screen py-10">
-      <div className="glass-card w-full max-w-2xl animate-fade-in">
-        <h1 className="text-center mb-6">Summit Registration</h1>
-        <form onSubmit={handleSubmit}>
-          
-          {/* Primary Registrant Info */}
-          <div className="mb-8">
-            <h3 className="mb-4" style={{ color: "var(--accent)" }}>Primary Attendee</h3>
-            <div className="grid grid-cols-2 gap-6">
-              <div>
-                <label className="label">Full Name</label>
-                <input 
-                  type="text" 
-                  name="primaryName" 
-                  required 
-                  className="input" 
-                  value={formData.primaryName} 
-                  onChange={handleInputChange} 
-                />
-              </div>
-              <div>
-                <label className="label">Email Address</label>
-                <input 
-                  type="email" 
-                  name="primaryEmail" 
-                  required 
-                  className="input" 
-                  value={formData.primaryEmail} 
-                  onChange={handleInputChange} 
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-6 mt-4">
-              <div>
-                <label className="label">Phone Number (Optional)</label>
-                <input 
-                  type="tel" 
-                  name="primaryPhone" 
-                  className="input" 
-                  value={formData.primaryPhone} 
-                  onChange={handleInputChange} 
-                />
-              </div>
-              <div>
-                <label className="label">Business Stage</label>
-                <select 
-                  name="businessStage" 
-                  className="input" 
-                  value={formData.businessStage} 
-                  onChange={handleInputChange}
-                >
-                  <option value="">Select a stage...</option>
-                  <option value="Idea">Idea / Concept</option>
-                  <option value="Startup">Startup</option>
-                  <option value="Growth">Growth</option>
-                  <option value="Enterprise">Enterprise</option>
-                </select>
-              </div>
-            </div>
-            <div className="mt-4">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input 
-                  type="checkbox" 
-                  name="prayerRequested" 
-                  checked={formData.prayerRequested} 
-                  onChange={handleInputChange} 
-                  style={{ width: "20px", height: "20px" }}
-                />
-                <span className="text-sm">Would you like someone from our team to pray with you?</span>
-              </label>
-            </div>
-          </div>
+    <div className="container" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      
+      {/* Hero Section */}
+      <header className="text-center animate-fade-in" style={{ marginTop: '6vh', marginBottom: '4rem' }}>
+        <div style={{ marginBottom: '1.5rem', fontWeight: 700, letterSpacing: '0.1em', color: 'var(--foreground)' }}>
+          INSPIRE SUMMIT 2026 PRESENTS:
+        </div>
+        <h1 style={{ fontSize: '3rem', marginBottom: '0.5rem', color: 'var(--primary)' }}>
+          BUSINESS LEADERSHIP SUMMIT
+        </h1>
+        <div style={{ fontSize: '1.5rem', fontWeight: 600, letterSpacing: '0.2em', margin: '1.5rem 0', color: 'var(--foreground)' }}>
+          THEME:
+        </div>
+        <h1 style={{ 
+          fontSize: '7rem', 
+          lineHeight: '1',
+          marginBottom: '2rem', 
+          background: 'linear-gradient(to right, var(--secondary) 50%, var(--accent) 50%)', 
+          WebkitBackgroundClip: 'text', 
+          WebkitTextFillColor: 'transparent',
+          textTransform: 'uppercase',
+          fontWeight: 900,
+          fontFamily: 'Impact, sans-serif'
+        }}>
+          THRIVE
+        </h1>
+        
+        <div className="flex justify-center gap-4 mt-4 mb-8">
+          <Link href="/register" className="btn" style={{ padding: '1rem 2.5rem', fontSize: '1.2rem' }}>
+            Register Now
+          </Link>
+          <Link href="#speakers" className="btn btn-secondary" style={{ padding: '1rem 2.5rem', fontSize: '1.2rem' }}>
+            View Speakers
+          </Link>
+        </div>
+      </header>
 
-          {/* Guest Registration */}
-          <div className="mb-8">
-            <div className="flex justify-between items-center mb-4">
-              <h3 style={{ color: "var(--secondary)" }}>Guests</h3>
-              <button type="button" onClick={addGuest} className="btn btn-secondary" style={{ padding: "0.5rem 1rem", fontSize: "0.9rem" }}>
-                + Add Guest
-              </button>
+      {/* Guest Speakers */}
+      <section id="speakers" className="animate-fade-in" style={{ marginBottom: '4rem', animationDelay: '0.2s' }}>
+        <h2 className="text-center" style={{ textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: '2rem' }}>
+          <span style={{ borderBottom: '2px solid var(--secondary)', padding: '0 1rem' }}>Guest Speakers</span>
+        </h2>
+        <div className="grid grid-cols-4 gap-6">
+          {speakers.map((speaker, index) => (
+            <div key={index} className="speaker-card">
+              <div className="speaker-image" style={{ position: 'relative' }}>
+                <img 
+                  src={speaker.image} 
+                  alt={speaker.name} 
+                  style={{ width: '100%', height: '300px', objectFit: 'cover', display: 'block' }} 
+                />
+              </div>
+              <div className="speaker-info">
+                <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem', color: 'var(--secondary)' }}>{speaker.name}</h3>
+                <p style={{ fontSize: '0.9rem', color: 'var(--accent)', fontWeight: 600, textTransform: 'uppercase' }}>
+                  {speaker.title}
+                </p>
+              </div>
             </div>
-            
-            {guests.length === 0 ? (
-              <p className="text-sm text-[rgba(255,255,255,0.5)]">No guests added yet. Click above to bring a guest.</p>
-            ) : (
-              guests.map((guest, index) => (
-                <div key={index} className="flex gap-4 items-center mb-4 p-4 rounded-lg" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)" }}>
-                  <div className="flex-1">
-                    <label className="label text-xs">Guest Name</label>
-                    <input 
-                      type="text" 
-                      required 
-                      className="input" 
-                      style={{ marginBottom: 0 }}
-                      value={guest.name} 
-                      onChange={(e) => updateGuest(index, "name", e.target.value)} 
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <label className="label text-xs">Guest Email</label>
-                    <input 
-                      type="email" 
-                      required 
-                      className="input"
-                      style={{ marginBottom: 0 }}
-                      value={guest.email} 
-                      onChange={(e) => updateGuest(index, "email", e.target.value)} 
-                    />
-                  </div>
-                  <button 
-                    type="button" 
-                    onClick={() => removeGuest(index)} 
-                    className="btn" 
-                    style={{ background: "var(--danger)", padding: "0.8rem", marginTop: "1.2rem" }}
-                  >
-                    X
-                  </button>
-                </div>
-              ))
-            )}
-          </div>
+          ))}
+        </div>
+      </section>
 
-          <div className="text-center mt-8">
-            <button type="submit" className="btn" style={{ width: "100%", padding: "1rem", fontSize: "1.2rem" }} disabled={isSubmitting}>
-              {isSubmitting ? "Processing..." : "Complete Registration"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </main>
+      {/* Event Details Footer Banner */}
+      <section className="animate-fade-in" style={{ animationDelay: '0.4s', background: 'var(--secondary)', color: 'white', padding: '2rem', borderRadius: 'var(--border-radius)', display: 'flex', flexWrap: 'wrap', gap: '2rem', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ flex: '1 1 300px', borderLeft: '4px solid white', paddingLeft: '1.5rem' }}>
+          <div style={{ border: '1px solid white', display: 'inline-block', padding: '0.2rem 1rem', borderRadius: '4px', marginBottom: '0.5rem', fontSize: '0.8rem', letterSpacing: '1px' }}>DATE</div>
+          <h2 style={{ color: 'white', margin: 0, fontSize: '2.2rem' }}>SAT., AUG. 29TH, 2026</h2>
+        </div>
+        
+        <div style={{ flex: '0 1 auto', borderLeft: '4px solid white', paddingLeft: '1.5rem' }}>
+          <div style={{ border: '1px solid white', display: 'inline-block', padding: '0.2rem 1rem', borderRadius: '4px', marginBottom: '0.5rem', fontSize: '0.8rem', letterSpacing: '1px' }}>TIME</div>
+          <h2 style={{ color: 'white', margin: 0, fontSize: '3rem' }}>9AM</h2>
+        </div>
+
+        <div style={{ flex: '1 1 400px', borderLeft: '4px solid white', paddingLeft: '1.5rem' }}>
+          <h3 style={{ color: 'white', margin: 0, fontSize: '1.4rem', lineHeight: '1.4' }}>
+            FOTA AUDITORIUM,<br/>
+            40/42 Imam Dauda Street,<br/>
+            Off Eric Moore Road, Surulere, Lagos.
+          </h3>
+        </div>
+      </section>
+
+      <footer style={{ marginTop: '4rem', padding: '2rem 0', textAlign: 'center', color: 'var(--secondary)' }}>
+        <p>&copy; 2026 Inspire Summit. All Rights Reserved.</p>
+        <div className="mt-4 flex justify-center gap-4 text-sm font-semibold">
+          <Link href="/admin">Admin Dashboard</Link>
+          <span>|</span>
+          <Link href="/checkin">Volunteer Check-in</Link>
+        </div>
+      </footer>
+    </div>
   );
 }
