@@ -6,22 +6,22 @@ export default function Home() {
     { 
       name: "DR. EEZEE TEE", 
       title: "CEO, EEZEE CONCEPTZ GLOBAL", 
-      image: "/speakers/speaker-1.jpeg" 
+      image: "/speakers/Dr.-Eezee-Tee-scaled.jpg" 
     },
     { 
       name: "DR. BAYO ADEDEJI", 
       title: "CEO OF WAKANOW", 
-      image: "/speakers/speaker-2.png" 
+      image: "/speakers/Dr. Bayo Adedeji.jpg" 
     },
     { 
       name: "MR. GBOLAHAN FANIRAN", 
       title: "CEO, MINIEMONEY", 
-      image: "/speakers/speaker-3.jpeg" 
+      image: "/speakers/Mr. Gbolahan-Faniran.jpg" 
     },
     { 
       name: "MR. TOBI FLETCHER", 
       title: "CEO OF OFADABOY", 
-      image: "/speakers/speaker-4.jpeg" 
+      image: "/speakers/Mr. Tobi Fletcher.jpg" 
     },
   ];
 
