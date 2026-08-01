@@ -229,21 +229,21 @@ export default function RegisterPage() {
                 
                 <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer' }}>
                   <input type="checkbox" name="communicationConsent" checked={formData.communicationConsent} onChange={handleInputChange} style={{ marginTop: '5px' }} />
-                  <span style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.8)' }}>
+                  <span style={{ fontSize: '0.9rem', color: 'var(--foreground)' }}>
                     I agree to receive event updates and future communications.
                   </span>
                 </label>
 
                 <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer' }}>
                   <input type="checkbox" name="mediaRelease" checked={formData.mediaRelease} onChange={handleInputChange} style={{ marginTop: '5px' }} />
-                  <span style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.8)' }}>
+                  <span style={{ fontSize: '0.9rem', color: 'var(--foreground)' }}>
                     I grant permission for photographs, videos, and recordings captured during the summit to be used for Inspire Summit publicity.
                   </span>
                 </label>
 
                 <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer' }}>
                   <input type="checkbox" name="conductAgreement" checked={formData.conductAgreement} onChange={handleInputChange} style={{ marginTop: '5px' }} />
-                  <span style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.8)' }}>
+                  <span style={{ fontSize: '0.9rem', color: 'var(--foreground)' }}>
                     I agree to follow event guidelines and the code of conduct.
                   </span>
                 </label>
