@@ -6,22 +6,22 @@ export default function Home() {
     { 
       name: "DR. EEZEE TEE", 
       title: "CEO, EEZEE CONCEPTZ GLOBAL", 
-      image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=600&q=80" 
+      image: "/speakers/speaker-1.jpeg" 
     },
     { 
       name: "DR. BAYO ADEDEJI", 
       title: "CEO OF WAKANOW", 
-      image: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=600&q=80" 
+      image: "/speakers/speaker-2.png" 
     },
     { 
       name: "MR. GBOLAHAN FANIRAN", 
       title: "CEO, MINIEMONEY", 
-      image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=600&q=80" 
+      image: "/speakers/speaker-3.jpeg" 
     },
     { 
       name: "MR. TOBI FLETCHER", 
       title: "CEO OF OFADABOY", 
-      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=600&q=80" 
+      image: "/speakers/speaker-4.jpeg" 
     },
   ];
 
