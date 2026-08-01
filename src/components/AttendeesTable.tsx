@@ -12,6 +12,9 @@ type Attendee = {
   attendingAs: string;
   registrationId: string;
   status: string;
+  communicationConsent?: boolean;
+  mediaRelease?: boolean;
+  conductAgreement?: boolean;
 };
 
 export default function AttendeesTable({ attendees }: { attendees: Attendee[] }) {
@@ -27,17 +30,24 @@ export default function AttendeesTable({ attendees }: { attendees: Attendee[] })
   });
 
   const exportCSV = () => {
-    const headers = ["Full Name", "Email", "Phone", "Category", "Registration ID", "Status"];
+    const headers = ["Full Name", "Email", "Phone", "Category", "Registration ID", "Status", "Consents"];
     const csvRows = [headers.join(',')];
 
     filteredAttendees.forEach(a => {
+      const consents = [
+        a.communicationConsent ? 'Comm' : '',
+        a.mediaRelease ? 'Media' : '',
+        a.conductAgreement ? 'Conduct' : ''
+      ].filter(Boolean).join(' | ');
+
       const row = [
         `"${a.fullName || ''}"`,
         `"${a.email || ''}"`,
         `"${a.phone || ''}"`,
         `"${a.attendingAs || ''}"`,
         `"${a.registrationId || ''}"`,
-        `"${a.status || ''}"`
+        `"${a.status || ''}"`,
+        `"${consents}"`
       ];
       csvRows.push(row.join(','));
     });
@@ -56,17 +66,26 @@ export default function AttendeesTable({ attendees }: { attendees: Attendee[] })
     
     doc.text("Registered Attendees", 14, 15);
     
-    const tableData = filteredAttendees.map(a => [
-      a.fullName || '',
-      a.email || '',
-      a.phone || '',
-      a.attendingAs || '',
-      a.registrationId || '',
-      a.status.replace('_', ' ') || ''
-    ]);
+    const tableData = filteredAttendees.map(a => {
+      const consents = [
+        a.communicationConsent ? 'Comm' : '',
+        a.mediaRelease ? 'Media' : '',
+        a.conductAgreement ? 'Conduct' : ''
+      ].filter(Boolean).join(' | ');
+
+      return [
+        a.fullName || '',
+        a.email || '',
+        a.phone || '',
+        a.attendingAs || '',
+        a.registrationId || '',
+        a.status.replace('_', ' ') || '',
+        consents
+      ];
+    });
 
     autoTable(doc, {
-      head: [["Full Name", "Email", "Phone", "Category", "Reg ID", "Status"]],
+      head: [["Full Name", "Email", "Phone", "Category", "Reg ID", "Status", "Consents"]],
       body: tableData,
       startY: 20,
       styles: { fontSize: 8 },
@@ -111,12 +130,13 @@ export default function AttendeesTable({ attendees }: { attendees: Attendee[] })
               <th style={{ padding: '1rem', color: 'var(--accent)' }}>Category</th>
               <th style={{ padding: '1rem', color: 'var(--accent)' }}>Registration ID</th>
               <th style={{ padding: '1rem', color: 'var(--accent)' }}>Status</th>
+              <th style={{ padding: '1rem', color: 'var(--accent)' }}>Consents</th>
             </tr>
           </thead>
           <tbody>
             {filteredAttendees.length === 0 ? (
               <tr>
-                <td colSpan={6} style={{ padding: '1rem', textAlign: 'center' }}>No attendees match your search.</td>
+                <td colSpan={7} style={{ padding: '1rem', textAlign: 'center' }}>No attendees match your search.</td>
               </tr>
             ) : (
               filteredAttendees.map(attendee => (
@@ -136,6 +156,13 @@ export default function AttendeesTable({ attendees }: { attendees: Attendee[] })
                     }}>
                       {attendee.status.replace('_', ' ')}
                     </span>
+                  </td>
+                  <td style={{ padding: '1rem', fontSize: '0.8rem' }}>
+                    {[
+                      attendee.communicationConsent ? 'Comm' : '',
+                      attendee.mediaRelease ? 'Media' : '',
+                      attendee.conductAgreement ? 'Conduct' : ''
+                    ].filter(Boolean).join(' | ')}
                   </td>
                 </tr>
               ))
