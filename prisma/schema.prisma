@@ -1,5 +1,5 @@
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../src/generated/prisma"
 }
 
@@ -29,10 +29,15 @@ model Attendee {
   conductAgreement   Boolean      @default(false)
   qrCodeString       String       @unique
   status             String       @default("PENDING") // PENDING, CHECKED_IN
+  paymentStatus      String       @default("UNPAID") // PAID, UNPAID, WAIVED
+  certificateSent    Boolean      @default(false)
+  seatId             String?      @unique
+  seat               Seat?        @relation(fields: [seatId], references: [id])
   createdAt          DateTime     @default(now())
   updatedAt          DateTime     @updatedAt
   attendance         Attendance?
   feedback           Feedback[]
+  messageLogs        MessageLog[]
 }
 
 model Attendance {
@@ -79,6 +84,46 @@ model User {
   name      String
   email     String   @unique
   password  String
-  role      String   @default("VOLUNTEER") // SUPER_ADMIN, REGISTRATION, CHECK_IN, FINANCE
+  role      String   @default("VOLUNTEER") // SUPER_ADMIN, EVENT_ADMIN, REGISTRATION_OFFICER, CHECK_IN_OFFICER, COMMUNICATIONS_OFFICER, ANALYTICS_VIEWER
+  isActive  Boolean  @default(true)
+  lastLogin DateTime?
   createdAt DateTime @default(now())
+}
+
+model Section {
+  id       String @id @default(uuid())
+  name     String @unique // e.g., VIP, Regular, Balcony
+  capacity Int
+  seats    Seat[]
+}
+
+model Seat {
+  id         String    @id @default(uuid())
+  sectionId  String
+  section    Section   @relation(fields: [sectionId], references: [id])
+  row        String
+  number     String
+  attendee   Attendee?
+  @@unique([sectionId, row, number])
+}
+
+model MessageLog {
+  id         String   @id @default(uuid())
+  attendeeId String
+  attendee   Attendee @relation(fields: [attendeeId], references: [id], onDelete: Cascade)
+  type       String   // WHATSAPP or EMAIL
+  status     String   // SENT, FAILED, DELIVERED, READ
+  content    String?
+  timestamp  DateTime @default(now())
+}
+
+model Volunteer {
+  id         String   @id @default(uuid())
+  name       String
+  email      String   @unique
+  phone      String
+  department String
+  assignment String?
+  performance String?
+  createdAt  DateTime @default(now())
 }

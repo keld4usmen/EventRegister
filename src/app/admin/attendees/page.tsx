@@ -11,10 +11,9 @@ export default async function AttendeesAdminPage() {
   });
 
   return (
-    <div className="container animate-fade-in">
+    <div className="animate-fade-in space-y-6">
       <div className="flex justify-between items-center mb-6">
-        <h1>Registered Attendees</h1>
-        <Link href="/admin" className="btn btn-secondary">Back to Dashboard</Link>
+        <h2 className="text-2xl font-bold">Registered Attendees</h2>
       </div>
 
       <AttendeesTable attendees={attendees} />

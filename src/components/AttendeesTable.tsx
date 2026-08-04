@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import { Search, Download, Trash, Mail, MessageCircle, Armchair, ChevronDown } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -12,6 +13,8 @@ type Attendee = {
   attendingAs: string;
   registrationId: string;
   status: string;
+  paymentStatus?: string;
+  seatId?: string | null;
   communicationConsent?: boolean;
   mediaRelease?: boolean;
   conductAgreement?: boolean;
@@ -19,6 +22,8 @@ type Attendee = {
 
 export default function AttendeesTable({ attendees }: { attendees: Attendee[] }) {
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isBulkOpen, setIsBulkOpen] = useState(false);
 
   const filteredAttendees = attendees.filter(a => {
     const term = searchTerm.toLowerCase();
@@ -29,8 +34,26 @@ export default function AttendeesTable({ attendees }: { attendees: Attendee[] })
     );
   });
 
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filteredAttendees.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredAttendees.map(a => a.id)));
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    const newSet = new Set(selectedIds);
+    if (newSet.has(id)) {
+      newSet.delete(id);
+    } else {
+      newSet.add(id);
+    }
+    setSelectedIds(newSet);
+  };
+
   const exportCSV = () => {
-    const headers = ["Full Name", "Email", "Phone", "Category", "Registration ID", "Status", "Consents"];
+    const headers = ["Full Name", "Email", "Phone", "Category", "Registration ID", "Status", "Payment", "Consents"];
     const csvRows = [headers.join(',')];
 
     filteredAttendees.forEach(a => {
@@ -47,6 +70,7 @@ export default function AttendeesTable({ attendees }: { attendees: Attendee[] })
         `"${a.attendingAs || ''}"`,
         `"${a.registrationId || ''}"`,
         `"${a.status || ''}"`,
+        `"${a.paymentStatus || 'UNPAID'}"`,
         `"${consents}"`
       ];
       csvRows.push(row.join(','));
@@ -80,12 +104,13 @@ export default function AttendeesTable({ attendees }: { attendees: Attendee[] })
         a.attendingAs || '',
         a.registrationId || '',
         a.status.replace('_', ' ') || '',
+        a.paymentStatus || 'UNPAID',
         consents
       ];
     });
 
     autoTable(doc, {
-      head: [["Full Name", "Email", "Phone", "Category", "Reg ID", "Status", "Consents"]],
+      head: [["Full Name", "Email", "Phone", "Category", "Reg ID", "Status", "Payment", "Consents"]],
       body: tableData,
       startY: 20,
       styles: { fontSize: 8 },
@@ -95,74 +120,125 @@ export default function AttendeesTable({ attendees }: { attendees: Attendee[] })
     doc.save(`attendees_export_${new Date().toISOString().split('T')[0]}.pdf`);
   };
 
+  const executeBulkAction = (action: string) => {
+    if (selectedIds.size === 0) return alert("Select at least one attendee.");
+    alert(`Bulk Action: ${action} for ${selectedIds.size} attendees. (Mocked for now)`);
+    setIsBulkOpen(false);
+  };
+
   return (
-    <div>
-      <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-        <input 
-          type="text" 
-          placeholder="Search by name, email, or Reg ID..." 
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="p-2 rounded w-full md:w-1/3"
-          style={{
-            background: 'rgba(255,255,255,0.1)',
-            border: '1px solid rgba(255,255,255,0.2)',
-            color: 'white'
-          }}
-        />
-        <div className="flex gap-2">
-          <button onClick={exportCSV} className="btn btn-secondary" style={{ padding: '0.5rem 1rem' }}>
-            Export to CSV
+    <div className="space-y-4">
+      {/* Top Toolbar */}
+      <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white/5 p-4 rounded-xl border border-white/10">
+        
+        {/* Search */}
+        <div className="relative w-full md:w-96">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+          <input 
+            type="text" 
+            placeholder="Search by name, email, or Reg ID..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 rounded-lg bg-black/20 border border-white/10 text-white placeholder-gray-400 focus:outline-none focus:border-[#00aeef]"
+          />
+        </div>
+
+        {/* Actions */}
+        <div className="flex flex-wrap gap-2 w-full md:w-auto">
+          {/* Bulk Actions Dropdown */}
+          <div className="relative">
+            <button 
+              onClick={() => setIsBulkOpen(!isBulkOpen)}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#004b87] text-white hover:bg-[#004b87]/80 transition-colors"
+            >
+              Bulk Actions <ChevronDown size={16} />
+            </button>
+            
+            {isBulkOpen && (
+              <div className="absolute right-0 mt-2 w-48 bg-gray-900 border border-white/10 rounded-xl shadow-xl z-10 overflow-hidden">
+                <button onClick={() => executeBulkAction('Email')} className="flex items-center gap-2 w-full px-4 py-2 text-sm text-left hover:bg-white/10"><Mail size={16}/> Send Email</button>
+                <button onClick={() => executeBulkAction('WhatsApp')} className="flex items-center gap-2 w-full px-4 py-2 text-sm text-left hover:bg-white/10"><MessageCircle size={16}/> Send WhatsApp</button>
+                <button onClick={() => executeBulkAction('Assign Seat')} className="flex items-center gap-2 w-full px-4 py-2 text-sm text-left hover:bg-white/10"><Armchair size={16}/> Assign Seats</button>
+                <div className="h-px bg-white/10 my-1" />
+                <button onClick={() => executeBulkAction('Delete')} className="flex items-center gap-2 w-full px-4 py-2 text-sm text-left text-red-400 hover:bg-red-400/10"><Trash size={16}/> Delete Selected</button>
+              </div>
+            )}
+          </div>
+
+          <button onClick={exportCSV} className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors">
+            <Download size={16} /> CSV
           </button>
-          <button onClick={exportPDF} className="btn btn-primary" style={{ padding: '0.5rem 1rem' }}>
-            Export to PDF
+          <button onClick={exportPDF} className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#f26c22] hover:bg-[#f26c22]/90 text-white transition-colors">
+            <Download size={16} /> PDF
           </button>
         </div>
       </div>
 
-      <div className="glass-card" style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.2)' }}>
-              <th style={{ padding: '1rem', color: 'var(--accent)' }}>Full Name</th>
-              <th style={{ padding: '1rem', color: 'var(--accent)' }}>Email</th>
-              <th style={{ padding: '1rem', color: 'var(--accent)' }}>Phone</th>
-              <th style={{ padding: '1rem', color: 'var(--accent)' }}>Category</th>
-              <th style={{ padding: '1rem', color: 'var(--accent)' }}>Registration ID</th>
-              <th style={{ padding: '1rem', color: 'var(--accent)' }}>Status</th>
-              <th style={{ padding: '1rem', color: 'var(--accent)' }}>Consents</th>
+      {/* Table */}
+      <div className="glass-card rounded-xl border border-white/10 overflow-x-auto">
+        <table className="w-full text-left text-sm">
+          <thead className="bg-black/20 border-b border-white/10 text-gray-300">
+            <tr>
+              <th className="p-4 w-12">
+                <input 
+                  type="checkbox" 
+                  className="rounded bg-black/20 border-white/20"
+                  checked={selectedIds.size === filteredAttendees.length && filteredAttendees.length > 0}
+                  onChange={toggleSelectAll}
+                />
+              </th>
+              <th className="p-4 font-medium">Attendee</th>
+              <th className="p-4 font-medium">Contact</th>
+              <th className="p-4 font-medium">Reg ID / Category</th>
+              <th className="p-4 font-medium">Payment</th>
+              <th className="p-4 font-medium">Status</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-white/10">
             {filteredAttendees.length === 0 ? (
               <tr>
-                <td colSpan={7} style={{ padding: '1rem', textAlign: 'center' }}>No attendees match your search.</td>
+                <td colSpan={6} className="p-8 text-center text-gray-400">
+                  No attendees match your search.
+                </td>
               </tr>
             ) : (
               filteredAttendees.map(attendee => (
-                <tr key={attendee.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-                  <td style={{ padding: '1rem', fontWeight: 'bold' }}>{attendee.fullName}</td>
-                  <td style={{ padding: '1rem' }}>{attendee.email}</td>
-                  <td style={{ padding: '1rem' }}>{attendee.phone}</td>
-                  <td style={{ padding: '1rem' }}>{attendee.attendingAs}</td>
-                  <td style={{ padding: '1rem', fontFamily: 'monospace', color: 'var(--primary)' }}>{attendee.registrationId}</td>
-                  <td style={{ padding: '1rem' }}>
-                    <span style={{ 
-                      padding: '0.2rem 0.8rem', 
-                      borderRadius: '12px', 
-                      fontSize: '0.8rem',
-                      background: attendee.status === 'CHECKED_IN' ? 'rgba(0, 230, 118, 0.2)' : 'rgba(255,255,255,0.1)',
-                      color: attendee.status === 'CHECKED_IN' ? 'var(--success)' : 'inherit'
-                    }}>
-                      {attendee.status.replace('_', ' ')}
+                <tr key={attendee.id} className={`hover:bg-white/5 transition-colors ${selectedIds.has(attendee.id) ? 'bg-[#00aeef]/10' : ''}`}>
+                  <td className="p-4">
+                    <input 
+                      type="checkbox" 
+                      className="rounded bg-black/20 border-white/20"
+                      checked={selectedIds.has(attendee.id)}
+                      onChange={() => toggleSelect(attendee.id)}
+                    />
+                  </td>
+                  <td className="p-4">
+                    <p className="font-semibold text-white">{attendee.fullName}</p>
+                    <p className="text-xs text-gray-400">{attendee.jobTitle || 'N/A'} @ {attendee.company || 'N/A'}</p>
+                  </td>
+                  <td className="p-4">
+                    <p>{attendee.email}</p>
+                    <p className="text-xs text-gray-400">{attendee.phone}</p>
+                  </td>
+                  <td className="p-4">
+                    <p className="font-mono text-[#00aeef]">{attendee.registrationId}</p>
+                    <p className="text-xs text-gray-400">{attendee.attendingAs}</p>
+                  </td>
+                  <td className="p-4">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      attendee.paymentStatus === 'PAID' ? 'bg-green-500/20 text-green-400' : 
+                      attendee.paymentStatus === 'WAIVED' ? 'bg-blue-500/20 text-blue-400' : 
+                      'bg-orange-500/20 text-orange-400'
+                    }`}>
+                      {attendee.paymentStatus || 'UNPAID'}
                     </span>
                   </td>
-                  <td style={{ padding: '1rem', fontSize: '0.8rem' }}>
-                    {[
-                      attendee.communicationConsent ? 'Comm' : '',
-                      attendee.mediaRelease ? 'Media' : '',
-                      attendee.conductAgreement ? 'Conduct' : ''
-                    ].filter(Boolean).join(' | ')}
+                  <td className="p-4">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      attendee.status === 'CHECKED_IN' ? 'bg-green-500/20 text-green-400' : 'bg-white/10 text-gray-300'
+                    }`}>
+                      {attendee.status.replace('_', ' ')}
+                    </span>
                   </td>
                 </tr>
               ))
