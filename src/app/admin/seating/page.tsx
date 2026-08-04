@@ -35,7 +35,7 @@ export default function SeatingPage() {
                   <div className="w-48 bg-black/50 rounded-full h-2 overflow-hidden">
                     <div 
                       className="bg-[#00aeef] h-full" 
-                      style={{ width: \`\${(section.occupied / section.capacity) * 100}%\` }}
+                      style={{ width: `${(section.occupied / section.capacity) * 100}%` }}
                     ></div>
                   </div>
                   <span className="text-sm font-medium text-gray-300">
