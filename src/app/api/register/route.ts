@@ -77,6 +77,50 @@ export async function POST(req: Request) {
       },
     });
 
+    // Send WhatsApp confirmation message if token and phone number ID are configured
+    const waToken = process.env.WHATSAPP_ACCESS_TOKEN;
+    const waPhoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+
+    if (waToken && waPhoneNumberId && phone) {
+      try {
+        // Ensure phone number starts with country code without + or 00 (e.g., 234 for Nigeria)
+        const formattedPhone = phone.replace(/\D/g, ''); 
+
+        const waResponse = await fetch(`https://graph.facebook.com/v20.0/${waPhoneNumberId}/messages`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${waToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            messaging_product: "whatsapp",
+            to: formattedPhone,
+            type: "text",
+            text: {
+              body: `Hello ${preferredName || fullName},\n\nThank you for registering for Inspire Summit 2026!\n\nYour Registration ID is: ${registrationId}\n\nWe look forward to seeing you there!`
+            }
+          })
+        });
+
+        if (!waResponse.ok) {
+          const waData = await waResponse.json();
+          console.error('WhatsApp API Error:', waData);
+        } else {
+          // Log success if needed
+          await prisma.messageLog.create({
+            data: {
+              attendeeId: attendee.id,
+              type: 'WHATSAPP',
+              status: 'SENT',
+              content: 'Registration confirmation sent'
+            }
+          });
+        }
+      } catch (waError) {
+        console.error('Failed to send WhatsApp message:', waError);
+      }
+    }
+
     // TODO: Send confirmation email here via Nodemailer
 
     return NextResponse.json({ success: true, id: attendee.id });
